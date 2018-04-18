@@ -4,17 +4,15 @@ import datetime
 from datetime import date
 import time
 
-
-
 def check_statuses(jira,project):
 
     final_dict ={}
     #Used to search for specfici JIRA issues based on issue type
-    issues1 = jira.search_issues('project = ' + project + ' AND issuetype = Story ORDER BY created DESC', startAt=0,   maxResults=100)
-    issues2 = jira.search_issues('project = ' + project + ' AND issuetype = Story ORDER BY created DESC', startAt=100, maxResults=500)
+    issues1 = jira.search_issues('project = ' + project + ' AND issuetype = Story ORDER BY created DESC', startAt=0,   maxResults=25)
+    #issues2 = jira.search_issues('project = ' + project + ' AND issuetype = Story ORDER BY created DESC', startAt=100, maxResults=500)
     #issues3 = jira.search_issues('project = ' + project + ' AND issuetype = Story ORDER BY created DESC', startAt=200, maxResults=500)
 
-    list_of_searches = [issues1,issues2]
+    list_of_searches = [issues1]
     list_of_statuses = ["Recording", "Verification Phase", "Redirected", "Rejected", "On Hold",
                         "Solution Concept Phase - Open", "Merged", "Solution Concept Phase - In Creation",
                         "Solution Concept Phase - Internal Review", "Solution Concept Phase - Technical Review",
@@ -34,7 +32,6 @@ def check_statuses(jira,project):
                         if item.field == "status":
                             #print("Date:" + history.created + " From: " + item.fromString + " To:" + item.toString)
                             if item.fromString == "Recording":
-                                print(item.fromString)
                                 dict_of_statuses[item.fromString] = [("First date:",issue2.fields.created)]
                             if item.fromString in dict_of_statuses:
                                 dict_of_statuses[item.fromString].append(("Last date:",history.created))
@@ -78,63 +75,6 @@ def check_statuses(jira,project):
                     final_dict[str(issue2)] = cleaned_dict
     return final_dict
 
-def execute_sql(sql):
-    # Open database connection
-    db = MySQLdb.connect("df-db.cvppgrc7bsks.us-west-2.rds.amazonaws.com", "yeyoflx", "V0lkswagen!", "JIRA")
-
-    # prepare a cursor object using cursor() method
-    cursor = db.cursor()
-
-    # execute SQL query using execute() method.
-    cursor.execute("SELECT VERSION()")
-
-    try:
-        # execute SQL command
-        cursor.execute(sql)
-        # Commit your changes in the database
-        db.commit()
-        print("Successfully executed SQL statement")
-    except:
-        # Rollback in case there is any error
-        print("Failed to execute SQL statement")
-        db.rollback()
-    # disconnect from server
-    db.close()
-
-def create_sql_jira(statuses):
-    for k,v in statuses.items():
-        print(k,v)
-        stored_values = []
-        stored_values.append(k)
-        for k1,v1 in v.items():
-            if v1 == None:
-                print(k1,[None,None,None])
-                for i in range(3):
-                    stored_values.append(None)
-            else:
-                print(k1,v1)
-                for i in v1:
-                    stored_values.append(i)
-        counter = 1
-        sql_string = """ INSERT INTO EFW_STATUSES (Issue,"""
-        for status in list_of_statuses:
-            start = status + "StartDate,"
-            end = status + "EndDate,"
-            total = status + "TotalDays,"
-            sql_string += start + end + total
-            counter += 3
-        sql_string = sql_string[:-1]+") VALUES("
-        print(counter)
-        for i in range(counter):
-            sql_string += "'{}',"
-        sql_string = sql_string[:-1]+");"
-        print(sql_string)
-        print(len(stored_values))
-        print(stored_values)
-        sql_string = sql_string.format(*stored_values)
-        execute_sql(sql_string)
-
-
 if __name__ == '__main__':
     start_time = time.time()
     # Used to connect to the Schenker JIRA Database using personal credentials
@@ -142,27 +82,28 @@ if __name__ == '__main__':
     jira = JIRA(options, basic_auth=('Diego.Felix@DBSchenker.com', 'V0lkswagen00151637?'))
     print("Successfully connected to JIRA")
 
-    list_of_statuses = ["Recording", "VerificationPhase", "Redirected", "Rejected", "OnHold",
-                        "SolutionConceptPhase_Open", "Merged", "SolutionConceptPhase_InCreation",
-                        "SolutionConceptPhase_InternalReview", "SolutionConceptPhase_TechnicalReview",
-                        "Sign_OffPhase", "ProductBacklog", "ToDo", "InProgress", "Review", "DevReview", "Done",
-                        "IssueOwnerReview","ReadytoDeploy","FunctionalAcceptanceTest","Production","Delivered" "Retired"]
-    sql_string = """ CREATE TABLE EFW_STATUSES (Issue varchar(255),"""
-    # for status in list_of_statuses:
-    #     start = status + "StartDate date,"
-    #     end = status + "EndDate date,"
-    #     total = status + "TotalDays int,"
-    #     sql_string += start + end + total
-    #
-    # sql_table = sql_string[:-1] + ");"
-    # print(sql_table)
-    # execute_sql(sql_table)
-
     projects = ["EFW"]
 
-    statuses = check_statuses(jira,projects[0])
-    create_sql_jira(statuses)
+    statuses = check_statuses(jira, projects[0])
 
+    new_statuses = {"User Story Definition": ["Recording", "Verification Phase"],
+                    "Solution Concept Creation": ["Solution Concept Phase - In Creation",
+                                                  "Solution Concept Phase - Internal Review",
+                                                  "Solution Concept Phase - Technical Review",
+                                                  "Sign-Off Phase"],
+                    "Development": ["TO DO", "In Progress", "Review", "Done"],
+                    "DevOps": ["Ready to Deploy","Functional Acceptance Test", "Production"]
+                    }
 
-
+    for k1,v1 in statuses.items():
+        print(k1,v1)
+        for k, v in new_statuses.items():
+            counter = -1
+            while v1[v[counter]] == None and abs(counter) <= len(v):
+                print(len(v))
+                print(v1[v[counter]])
+                counter -= 1
+                print(counter)
+            print(k,"|",v1[v[0]], "|", v1[v[counter]])
+        print()
 
