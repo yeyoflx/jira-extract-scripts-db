@@ -53,23 +53,58 @@ def extract_from_jira(jira,project):
                 status_age = (todays_date - second_date).days
 
             # Puts values from JIRA api and changelog into a dictionary containing all JIRA issues
-            if str(issue2) not in dict_of_stories.keys():
-                dict_of_stories[str(issue)] = {"Summary":issue2.fields.summary,
-                                               "Priority":issue2.fields.priority.name,
-                                               "Reporter":issue2.fields.reporter.displayName,
-                                               "Date Created":str(date_created),
-                                               "Story Age": str(story_age),
-                                               "Assignee":issue2.fields.assignee.displayName,
-                                               "Current Status":issue2.fields.status.name,
-                                               "Status Date": str(second_date),
-                                               "Status Age": status_age
-                                               }
+            if project != "EFW":
+                new_statuses = {"User Story Definition":["Recording","Verification Phase"],
+                                "Solution Concept Creation":["Solution Concept Open","Solution Concept in Creation","Solution Concept Int. Review","Solution Concept Tec. Review","Solution Concept Sign-off"],
+                                "Ready for Development": ["Product Backlog"],
+                                "Development":["Todo","In Progress","Review","Done"],
+                                "DevOps":["Issue Owner Review","Ready to Deploy","FAT","PROD"]
+                                }
+                if str(issue2) not in dict_of_stories.keys():
+                    dict_of_stories[str(issue)] = {"Summary":issue2.fields.summary,
+                                                   "Priority":issue2.fields.priority.name,
+                                                   "Reporter":issue2.fields.reporter.displayName,
+                                                   "Date Created":str(date_created),
+                                                   "Story Age": str(story_age),
+                                                   "Assignee":issue2.fields.assignee.displayName,
+                                                   "Current Status":issue2.fields.status.name,
+                                                   "Status Date": str(second_date),
+                                                   "Status Age": status_age
+                                                   }
+            else:
+                new_statuses = {"User Story Definition": ["Recording", "Verification Phase"],
+                                "Solution Concept Creation": ["Solution Concept Phase - Open", "Solution Concept Phase - In Creation",
+                                                              "Solution Concept Phase - Internal Review",
+                                                              "Solution Concept Phase - Technical Review",
+                                                              "Sign-Off Phase"],
+                                "Ready for Development": ["Product Backlog"],
+                                "Development": ["To Do", "In Progress", "Review", "Done"],
+                                "DevOps": ["Issue Owner Review", "Ready to Deploy", "Functional Acceptance Test", "Production", "Delivered"]
+                                }
+                status = issue2.fields.status.name
+
+                for k, v in new_statuses.items():
+                    if status in v:
+                        status = k
+                    else:
+                        pass
+                if str(issue2) not in dict_of_stories.keys():
+                    dict_of_stories[str(issue)] = {"Summary":issue2.fields.summary,
+                                                   "Priority":issue2.fields.priority.name,
+                                                   "Reporter":issue2.fields.reporter.displayName,
+                                                   "Date Created":str(date_created),
+                                                   "Story Age": str(story_age),
+                                                   "Assignee":issue2.fields.assignee.displayName,
+                                                   "Current Status":status,
+                                                   "Status Date": str(second_date),
+                                                   "Status Age": status_age
+                                                   }
     return dict_of_stories
 
 
 def execute_sql(sql):
     # Open database connection
-    db = MySQLdb.connect("localhost", "root", "password", "jira")
+    db = MySQLdb.connect("df-db.cvppgrc7bsks.us-west-2.rds.amazonaws.com", "yeyoflx", "V0lkswagen!", "JIRA")
 
     # prepare a cursor object using cursor() method
     cursor = db.cursor()
@@ -99,32 +134,33 @@ if __name__ == '__main__':
     options = {'server': 'https://schenkereservices.atlassian.net'}
     jira = JIRA(options, basic_auth=('Diego.Felix@DBSchenker.com', 'V0lkswagen00151637?'))
     print("Successfully connected to JIRA")
+    #projects = ["EFO", "EFA", "EFL","EFW"]
+    projects = ["EFW"]
+    for i in projects:
+        create_table_sql = """ CREATE TABLE """ + i + """ (
+                               Issue varchar(255),
+                               Summary varchar(255),
+                               Priority varchar(255),
+                               Reporter varchar(255),
+                               DateCreated date,
+                               StoryAge int,
+                               Assignee varchar(255),
+                               CurrentStatus varchar(255),
+                               StatusDate date,
+                               StatusAge int);
+                            """
+        execute_sql(create_table_sql)
+        stored_dictionary = extract_from_jira(jira,i)
+        for k,v in stored_dictionary.items():
+            stored_values = []
+            sql = ''' INSERT INTO '''+i+''' (Issue, Summary, Priority, Reporter,DateCreated,StoryAge, Assignee, CurrentStatus, StatusDate, StatusAge)
+                VALUES ('{}','{}','{}','{}','{}','{}','{}','{}','{}','{}');
+                    '''
+            stored_values.append(str(k))
+            for k1,v1 in v.items():
+                stored_values.append(v1)
+            sql = sql.format(*stored_values)
+            execute_sql(sql)
 
-    projects = ["EFO", "EFA", "EFL"]
-    stored_dictionary = extract_from_jira(jira,projects[2])
-
-    for k,v in stored_dictionary.items():
-        stored_values = []
-        sql = ''' INSERT INTO EFL (Issue, Summary, Priority, Reporter,DateCreated,StoryAge, Assignee, CurrentStatus, StatusDate, StatusAge)
-            VALUES ('{}','{}','{}','{}','{}','{}','{}','{}','{}','{}');
-                '''
-        stored_values.append(str(k))
-        for k1,v1 in v.items():
-            stored_values.append(v1)
-        sql = sql.format(*stored_values)
-        execute_sql(sql)
-
-
-    create_table_sql = """ CREATE TABLE EFA (
-           Issue varchar(255),
-           Summary varchar(255),
-           Priority varchar(255),
-           Reporter varchar(255),
-           DateCreated date,
-           StoryAge int,
-           Assignee varchar(255),
-           CurrentStatus varchar(255),
-           StatusDate date,
-           StatusAge int);
-        """
+    print(time.time() - start_time, 'seconds it took to run')
     #execute_sql(create_table_sql)
