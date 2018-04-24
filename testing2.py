@@ -17,7 +17,7 @@ def check_statuses(jira,project):
                         "Solution Concept Phase - Open", "Merged", "Solution Concept Phase - In Creation",
                         "Solution Concept Phase - Internal Review", "Solution Concept Phase - Technical Review",
                         "Sign-Off Phase", "Product Backlog", "TO DO", "IN PROGRESS", "Review", "DEV Review", "Done",
-                        "Issue Owner Review","Ready to Deploy","Functional Acceptance Test","Production","Delivered" "Retired"]
+                        "Issue Owner Review","Ready to Deploy","Functional Acceptance Test","Production","Delivered","Retired"]
     # Stores the status and dates for each issue and all the statuses it has passed through
     for list_of_issues in list_of_searches:
         for issue2 in list_of_issues:
@@ -30,7 +30,6 @@ def check_statuses(jira,project):
                 for history in changelog.histories[::-1]:
                     for item in history.items:
                         if item.field == "status":
-                            #print("Date:" + history.created + " From: " + item.fromString + " To:" + item.toString)
                             if item.fromString == "Recording":
                                 dict_of_statuses[item.fromString] = [("First date:",issue2.fields.created)]
                             if item.fromString in dict_of_statuses:
@@ -55,7 +54,6 @@ def check_statuses(jira,project):
                         if len(v) == 1:
                             first = v[0][1][0:10].split("-")
                             date1 = date(int(first[0]), int(first[1]), int(first[2]))
-                            #print(k,date1)
                             if k == "Recording":
                                 difference = (datetime.date.today() - date1).days
                                 cleaned_dict[k] = [date1,None,difference]
@@ -75,6 +73,29 @@ def check_statuses(jira,project):
                     final_dict[str(issue2)] = cleaned_dict
     return final_dict
 
+def execute_sql(sql):
+    # Open database connection
+    db = MySQLdb.connect("df-db.cvppgrc7bsks.us-west-2.rds.amazonaws.com", "yeyoflx", "V0lkswagen!", "JIRA")
+
+    # prepare a cursor object using cursor() method
+    cursor = db.cursor()
+
+    # execute SQL query using execute() method.
+    cursor.execute("SELECT VERSION()")
+
+    try:
+        # execute SQL command
+        cursor.execute(sql)
+        # Commit your changes in the database
+        db.commit()
+        print("Successfully executed SQL statement")
+    except:
+        # Rollback in case there is any error
+        print("Failed to execute SQL statement")
+        db.rollback()
+    # disconnect from server
+    db.close()
+
 if __name__ == '__main__':
     start_time = time.time()
     # Used to connect to the Schenker JIRA Database using personal credentials
@@ -91,19 +112,79 @@ if __name__ == '__main__':
                                                   "Solution Concept Phase - Internal Review",
                                                   "Solution Concept Phase - Technical Review",
                                                   "Sign-Off Phase"],
-                    "Development": ["TO DO", "In Progress", "Review", "Done"],
+                    "Development": ["TO DO", "IN PROGRESS", "Review","DEV Review", "Done"],
                     "DevOps": ["Ready to Deploy","Functional Acceptance Test", "Production"]
                     }
-
+    user_story_start, user_story_end = None, None
+    solution_concept_start, solution_concept_end = None, None
+    development_start, development_end = None, None
+    devops_start, devops_end = None, None
     for k1,v1 in statuses.items():
         print(k1,v1)
         for k, v in new_statuses.items():
             counter = -1
-            while v1[v[counter]] == None and abs(counter) <= len(v):
-                print(len(v))
-                print(v1[v[counter]])
-                counter -= 1
-                print(counter)
-            print(k,"|",v1[v[0]], "|", v1[v[counter]])
+            if k == "User Story Definition":
+                user_story_start = v1[v[0]]
+                user_story_start = user_story_start[0]
+                user_story_end = v1[v[counter]]
+            elif k == "Solution Concept Creation":
+                solution_concept_start = v1[v[0]]
+                if type(solution_concept_start) == list:
+                    solution_concept_start = solution_concept_start[0]
+                if solution_concept_start != None and user_story_end == None:
+                    user_story_end = solution_concept_start
+                solution_concept_end = v1[v[counter]]
+            elif k == "Development":
+                development_start = v1[v[0]]
+                if type(development_start) == list:
+                    development_start = development_start[0]
+                if development_start != None and user_story_end == None and user_story_start != None:
+                    user_story_end = development_start
+                if development_start != None and solution_concept_end == None and solution_concept_start != None:
+                    solution_concept_end = development_start
+                development_end = v1[v[counter]]
+            elif k == "DevOps":
+                devops_start = v1[v[0]]
+                if type(devops_start) == list:
+                    devops_start = devops_start[0]
+                if devops_end != None and user_story_end == None and user_story_start != None:
+                    user_story_end = devops_start
+                if devops_end != None and solution_concept_end == None and solution_concept_start != None:
+                    solution_concept_end = devops_start
+                if devops_end != None and development_end == None and development_start != None:
+                    development_end = devops_start
+                devops_end = v1[v[counter]]
+        status_dates = {"User Story Definition": (user_story_start, user_story_end),
+                        "Solution Concept Creation": (solution_concept_start, solution_concept_end),
+                        "Development": (development_start, development_end),
+                        "DevOps": (devops_start, devops_end)
+                        }
+        for k,v in  new_statuses.items():
+            start = status_dates[k][0]
+            end = status_dates[k][1]
+            if type(end) == list:
+                end = end[1]
+            if start == None or end == None:
+                print(k,start,end,0)
+            else:
+                difference = (end-start).days
+                print(k,start,end,difference)
+            # while v1[v[counter]] == None:
+            #     counter -= 1
+            #     if abs(counter) > len(v):
+            #         counter += 1
+            #         break
+            # #(k,"|",v1[v[0]],"|",v1[v[counter]])
+            #start_date = v1[v[0]]
+            #end_date = v1[v[counter]]
+            # if end_date != None and end_date[1] == None:
+            #     print(print(k, "|", start_date[0], "|", end_date[1]),v[counter])
+            # elif start_date and end_date != None:
+            #     print(k,"|",start_date[0],"|",end_date[1],v[counter])
+            # elif start_date != None and end_date == None:
+            #     print(k, "|",start_date[0], "|", end_date,v[counter])
+            # else:
+            #     print(k, "|", start_date, "|", end_date,v[counter])
         print()
 
+    print(time.time() - start_time, 'seconds it took to run')
