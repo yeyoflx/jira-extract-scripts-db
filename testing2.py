@@ -8,11 +8,11 @@ def check_statuses(jira,project):
 
     final_dict ={}
     #Used to search for specfici JIRA issues based on issue type
-    issues1 = jira.search_issues('project = ' + project + ' AND issuetype = Story ORDER BY created DESC', startAt=0,   maxResults=25)
-    #issues2 = jira.search_issues('project = ' + project + ' AND issuetype = Story ORDER BY created DESC', startAt=100, maxResults=500)
+    issues1 = jira.search_issues('project = ' + project + ' AND issuetype = Story ORDER BY created DESC', startAt=0,   maxResults=100)
+    issues2 = jira.search_issues('project = ' + project + ' AND issuetype = Story ORDER BY created DESC', startAt=100, maxResults=500)
     #issues3 = jira.search_issues('project = ' + project + ' AND issuetype = Story ORDER BY created DESC', startAt=200, maxResults=500)
 
-    list_of_searches = [issues1]
+    list_of_searches = [issues1,issues2]
     list_of_statuses = ["Recording", "Verification Phase", "Redirected", "Rejected", "On Hold",
                         "Solution Concept Phase - Open", "Merged", "Solution Concept Phase - In Creation",
                         "Solution Concept Phase - Internal Review", "Solution Concept Phase - Technical Review",
@@ -73,48 +73,16 @@ def check_statuses(jira,project):
                     final_dict[str(issue2)] = cleaned_dict
     return final_dict
 
-def execute_sql(sql):
-    # Open database connection
-    db = MySQLdb.connect("df-db.cvppgrc7bsks.us-west-2.rds.amazonaws.com", "yeyoflx", "V0lkswagen!", "JIRA")
-
-    # prepare a cursor object using cursor() method
-    cursor = db.cursor()
-
-    # execute SQL query using execute() method.
-    cursor.execute("SELECT VERSION()")
-
-    try:
-        # execute SQL command
-        cursor.execute(sql)
-        # Commit your changes in the database
-        db.commit()
-        print("Successfully executed SQL statement")
-    except:
-        # Rollback in case there is any error
-        print("Failed to execute SQL statement")
-        db.rollback()
-    # disconnect from server
-    db.close()
-
-if __name__ == '__main__':
-    start_time = time.time()
-    # Used to connect to the Schenker JIRA Database using personal credentials
-    options = {'server': 'https://schenkereservices.atlassian.net'}
-    jira = JIRA(options, basic_auth=('Diego.Felix@DBSchenker.com', 'V0lkswagen00151637?'))
-    print("Successfully connected to JIRA")
-
-    projects = ["EFW"]
-
-    statuses = check_statuses(jira, projects[0])
-
+def create_new_statuses(statuses):
+    result = {}
     new_statuses = {"User Story Definition": ["Recording", "Verification Phase"],
-                    "Solution Concept Creation": ["Solution Concept Phase - In Creation",
-                                                  "Solution Concept Phase - Internal Review",
-                                                  "Solution Concept Phase - Technical Review",
-                                                  "Sign-Off Phase"],
-                    "Development": ["TO DO", "IN PROGRESS", "Review","DEV Review", "Done"],
-                    "DevOps": ["Ready to Deploy","Functional Acceptance Test", "Production"]
-                    }
+                        "Solution Concept Creation": ["Solution Concept Phase - In Creation",
+                                                      "Solution Concept Phase - Internal Review",
+                                                      "Solution Concept Phase - Technical Review",
+                                                      "Sign-Off Phase"],
+                        "Development": ["TO DO", "IN PROGRESS", "Review","DEV Review", "Done"],
+                        "DevOps": ["Ready to Deploy","Functional Acceptance Test", "Production"]
+                        }
     user_story_start, user_story_end = None, None
     solution_concept_start, solution_concept_end = None, None
     development_start, development_end = None, None
@@ -159,16 +127,24 @@ if __name__ == '__main__':
                         "Development": (development_start, development_end),
                         "DevOps": (devops_start, devops_end)
                         }
-        for k,v in  new_statuses.items():
-            start = status_dates[k][0]
-            end = status_dates[k][1]
+        for k2,v2 in  new_statuses.items():
+            start = status_dates[k2][0]
+            end = status_dates[k2][1]
             if type(end) == list:
                 end = end[1]
             if start == None or end == None:
-                print(k,start,end,0)
+                print(k2,start,end,0)
+                if k1 not in result.keys():
+                    result[k1] = [start,end,0]
+                else:
+                    result[k1].extend([start,end,0])
             else:
                 difference = (end-start).days
-                print(k,start,end,difference)
+                print(k2,start,end,difference)
+                if k1 not in result.keys():
+                    result[k1] = [start,end,difference]
+                else:
+                    result[k1].extend([start,end,difference])
             # while v1[v[counter]] == None:
             #     counter -= 1
             #     if abs(counter) > len(v):
@@ -186,5 +162,69 @@ if __name__ == '__main__':
             # else:
             #     print(k, "|", start_date, "|", end_date,v[counter])
         print()
+    return result
+def execute_sql(sql):
+    # Open database connection
+    db = MySQLdb.connect("df-db.cvppgrc7bsks.us-west-2.rds.amazonaws.com", "yeyoflx", "V0lkswagen!", "JIRA")
+
+    # prepare a cursor object using cursor() method
+    cursor = db.cursor()
+
+    # execute SQL query using execute() method.
+    cursor.execute("SELECT VERSION()")
+
+    try:
+        # execute SQL command
+        cursor.execute(sql)
+        # Commit your changes in the database
+        db.commit()
+        print("Successfully executed SQL statement")
+    except:
+        # Rollback in case there is any error
+        print("Failed to execute SQL statement")
+        db.rollback()
+    # disconnect from server
+    db.close()
+
+def create_sql_jira(statuses,list_of_statuses):
+    for k,v in statuses.items():
+        print(k,v)
+        stored_values = []
+        stored_values.append(k)
+        stored_values.extend(v)
+        print(len(stored_values))
+        counter = 1
+        sql_string = """ INSERT INTO EFW_STATUSES_2 (Issue,"""
+        for status in list_of_statuses:
+             start = status + "StartDate,"
+             end = status + "EndDate,"
+             total = status + "TotalDays,"
+             sql_string += start + end + total
+             counter += 3
+        sql_string = sql_string[:-1]+") VALUES("
+        print(counter)
+        for i in range(counter):
+            sql_string += "'{}',"
+        sql_string = sql_string[:-1]+");"
+        print(sql_string)
+        print(len(stored_values))
+        print(stored_values)
+        sql_string = sql_string.format(*stored_values)
+        execute_sql(sql_string)
+
+if __name__ == '__main__':
+    start_time = time.time()
+    # Used to connect to the Schenker JIRA Database using personal credentials
+    options = {'server': 'https://schenkereservices.atlassian.net'}
+    jira = JIRA(options, basic_auth=('Diego.Felix@DBSchenker.com', 'V0lkswagen00151637?'))
+    print("Successfully connected to JIRA")
+    projects = ["EFW"]
+    list_of_statuses = ["UserStoryDefinition","SolutionConceptCreation","Development","DevOps"]
+    sql_string = """ CREATE TABLE EFW_STATUSES_2 (Issue varchar(255),"""
+
+    statuses = check_statuses(jira, projects[0])
+    new_statuses = create_new_statuses(statuses)
+
+    create_sql_jira(new_statuses,list_of_statuses)
 
     print(time.time() - start_time, 'seconds it took to run')
