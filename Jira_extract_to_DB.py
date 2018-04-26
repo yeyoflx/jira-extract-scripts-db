@@ -10,14 +10,11 @@ import time
 
 def extract_from_jira(jira,project):
     #Used to search for specfici JIRA issues based on issue type
-    issues1 = jira.search_issues('project = '+project+' AND issuetype = Story ORDER BY created DESC',startAt = 0  ,maxResults=500)
+    issues1 = jira.search_issues('project = '+project+' AND issuetype = Story ORDER BY created DESC',startAt = 0  ,maxResults=100)
     issues2 = jira.search_issues('project = '+project+' AND issuetype = Story ORDER BY created DESC',startAt = 100,maxResults=500)
     issues3 = jira.search_issues('project = '+project+' AND issuetype = Story ORDER BY created DESC',startAt = 200,maxResults=500)
 
-    list_of_searches = [issues1,
-                        issues2,
-                        issues3
-                        ]
+    list_of_searches = [issues1,issues2,issues3]
     dict_of_stories = {}
     # Accesses JIRA items changelog and locates changes in status as well as save the date of the changed status
     for list_of_issues in list_of_searches:
@@ -56,8 +53,7 @@ def extract_from_jira(jira,project):
             if project != "EFW":
                 new_statuses = {"User Story Definition":["Recording","Verification Phase"],
                                 "Solution Concept Creation":["Solution Concept Open","Solution Concept in Creation","Solution Concept Int. Review","Solution Concept Tec. Review","Solution Concept Sign-off"],
-                                "Ready for Development": ["Product Backlog"],
-                                "Development":["Todo","In Progress","Review","Done"],
+                                "Development":["Todo","In Progress","DEV Review""Review","Done"],
                                 "DevOps":["Issue Owner Review","Ready to Deploy","FAT","PROD"]
                                 }
                 if str(issue2) not in dict_of_stories.keys():
@@ -77,8 +73,7 @@ def extract_from_jira(jira,project):
                                                               "Solution Concept Phase - Internal Review",
                                                               "Solution Concept Phase - Technical Review",
                                                               "Sign-Off Phase"],
-                                "Ready for Development": ["Product Backlog"],
-                                "Development": ["To Do", "In Progress", "Review", "Done"],
+                                "Development": ["To Do", "In Progress","DEV Review","Review", "Done"],
                                 "DevOps": ["Issue Owner Review", "Ready to Deploy", "Functional Acceptance Test", "Production", "Delivered"]
                                 }
                 status = issue2.fields.status.name
@@ -137,19 +132,19 @@ if __name__ == '__main__':
     #projects = ["EFO", "EFA", "EFL","EFW"]
     projects = ["EFW"]
     for i in projects:
-        create_table_sql = """ CREATE TABLE """ + i + """ (
-                               Issue varchar(255),
-                               Summary varchar(255),
-                               Priority varchar(255),
-                               Reporter varchar(255),
-                               DateCreated date,
-                               StoryAge int,
-                               Assignee varchar(255),
-                               CurrentStatus varchar(255),
-                               StatusDate date,
-                               StatusAge int);
-                            """
-        execute_sql(create_table_sql)
+        # create_table_sql = """ CREATE TABLE """ + i + """ (
+        #                        Issue varchar(255),
+        #                        Summary varchar(255),
+        #                        Priority varchar(255),
+        #                        Reporter varchar(255),
+        #                        DateCreated date,
+        #                        StoryAge int,
+        #                        Assignee varchar(255),
+        #                        CurrentStatus varchar(255),
+        #                        StatusDate date,
+        #                        StatusAge int);
+        #                     """
+        # execute_sql(create_table_sql)
         stored_dictionary = extract_from_jira(jira,i)
         for k,v in stored_dictionary.items():
             stored_values = []
