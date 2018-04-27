@@ -132,6 +132,8 @@ if __name__ == '__main__':
     #projects = ["EFO", "EFA", "EFL","EFW"]
     projects = ["EFW"]
     for i in projects:
+        delete_table_sql = """DELETE FROM EFW;"""
+        execute_sql(delete_table_sql)
         # create_table_sql = """ CREATE TABLE """ + i + """ (
         #                        Issue varchar(255),
         #                        Summary varchar(255),
@@ -158,4 +160,4 @@ if __name__ == '__main__':
             execute_sql(sql)
 
     print(time.time() - start_time, 'seconds it took to run')
-    #execute_sql(create_table_sql)
+
