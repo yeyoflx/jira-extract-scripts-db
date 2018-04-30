@@ -10,29 +10,30 @@ def check_statuses(jira,project):
     issues1 = jira.search_issues('project = ' + project + ' AND issuetype = Story ORDER BY created DESC', startAt=0,   maxResults=100)
     issues2 = jira.search_issues('project = ' + project + ' AND issuetype = Story ORDER BY created DESC', startAt=100,   maxResults=100)
 
-    list_of_issues = [issues2]
+    list_of_issues = [issues1,issues2]
     for issues in list_of_issues:
         for issue in issues:
             print(issue)
             sql_string = """ UPDATE EFW_STATUSES_2 SET """
+            sql_string2 = """ UPDATE EFW_STATUSES_2 SET """
             print(issue.fields.priority)
             sql_string += "Priority = '" + str(issue.fields.priority) + "' WHERE Issue = '" + str(issue) + "';"
             print(sql_string)
             execute_sql(sql_string)
-            # if issue.fields.customfield_11016 == None:
-            #     print(None)
-            # elif len(issue.fields.customfield_11016) > 1:
-            #     for mode in issue.fields.customfield_11016:
-            #         print(mode)
-            #         sql_string += str(mode) + "= '"+str(mode)+"' WHERE " + "Issue = '" + str(issue) + "';"
-            #         print(sql_string)
-            #         execute_sql(sql_string)
-            #         sql_string = """ UPDATE EFW_STATUSES_2 SET """
-            # else:
-            #     print(issue.fields.customfield_11016[0])
-            #     sql_string += str(issue.fields.customfield_11016[0]) + " = '"+ str(issue.fields.customfield_11016[0]) +"' WHERE " + "Issue = '"+str(issue)+"';"
-            #     print(sql_string)
-            #     execute_sql(sql_string)
+            if issue.fields.customfield_11016 == None:
+                print(None)
+            elif len(issue.fields.customfield_11016) > 1:
+                for mode in issue.fields.customfield_11016:
+                    print(mode)
+                    sql_string2 += str(mode) + "= '"+str(mode)+"' WHERE " + "Issue = '" + str(issue) + "';"
+                    print(sql_string2)
+                    execute_sql(sql_string2)
+                    sql_string2 = """ UPDATE EFW_STATUSES_2 SET """
+            else:
+                print(issue.fields.customfield_11016[0])
+                sql_string2 += str(issue.fields.customfield_11016[0]) + " = '"+ str(issue.fields.customfield_11016[0]) +"' WHERE " + "Issue = '"+str(issue)+"';"
+                print(sql_string2)
+                execute_sql(sql_string2)
             print()
 
 def execute_sql(sql):

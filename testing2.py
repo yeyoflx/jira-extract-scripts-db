@@ -220,8 +220,8 @@ if __name__ == '__main__':
     print("Successfully connected to JIRA")
     projects = ["EFW"]
     list_of_statuses = ["UserStoryDefinition","SolutionConceptCreation","Development","DevOps"]
-    sql_string = """ CREATE TABLE EFW_STATUSES_2 (Issue varchar(255),"""
-
+    delete_table_sql = """DELETE FROM EFW;"""
+    execute_sql(delete_table_sql)
     statuses = check_statuses(jira, projects[0])
     new_statuses = create_new_statuses(statuses)
 
