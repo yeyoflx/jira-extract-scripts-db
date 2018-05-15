@@ -99,7 +99,7 @@ def extract_from_jira(jira,project):
 
 def execute_sql(sql):
     # Open database connection
-    db = MySQLdb.connect("df-db.cvppgrc7bsks.us-west-2.rds.amazonaws.com", "yeyoflx", "V0lkswagen!", "JIRA")
+    db = MySQLdb.connect("jira-project.clnssjscsqc7.us-east-2.rds.amazonaws.com", "schenker01","goSchenker01!", "jira_status_tracking")
 
     # prepare a cursor object using cursor() method
     cursor = db.cursor()
@@ -129,24 +129,23 @@ if __name__ == '__main__':
     options = {'server': 'https://schenkereservices.atlassian.net'}
     jira = JIRA(options, basic_auth=('Diego.Felix@DBSchenker.com', 'V0lkswagen00151637?'))
     print("Successfully connected to JIRA")
-    #projects = ["EFO", "EFA", "EFL","EFW"]
     projects = ["EFW"]
     for i in projects:
         delete_table_sql = """DELETE FROM EFW;"""
         execute_sql(delete_table_sql)
-        # create_table_sql = """ CREATE TABLE """ + i + """ (
-        #                        Issue varchar(255),
-        #                        Summary varchar(255),
-        #                        Priority varchar(255),
-        #                        Reporter varchar(255),
-        #                        DateCreated date,
-        #                        StoryAge int,
-        #                        Assignee varchar(255),
-        #                        CurrentStatus varchar(255),
-        #                        StatusDate date,
-        #                        StatusAge int);
-        #                     """
-        # execute_sql(create_table_sql)
+        create_table_sql = """ CREATE TABLE """ + i + """ (
+                               Issue varchar(255),
+                               Summary varchar(255),
+                               Priority varchar(255),
+                               Reporter varchar(255),
+                               DateCreated date,
+                               StoryAge int,
+                               Assignee varchar(255),
+                               CurrentStatus varchar(255),
+                               StatusDate date,
+                               StatusAge int);
+                            """
+        execute_sql(create_table_sql)
         stored_dictionary = extract_from_jira(jira,i)
         for k,v in stored_dictionary.items():
             stored_values = []
