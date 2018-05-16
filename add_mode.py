@@ -38,7 +38,7 @@ def check_statuses(jira,project):
 
 def execute_sql(sql):
     # Open database connection
-    db = MySQLdb.connect("jira-project.clnssjscsqc7.us-east-2.rds.amazonaws.com", "brian.lee@dbschenker.com", "goSchenker01!", "jira_status_tracking")
+    db = MySQLdb.connect("jira-project.clnssjscsqc7.us-east-2.rds.amazonaws.com", "schenker01", "goSchenker01!", "jira_status_tracking")
 
     # prepare a cursor object using cursor() method
     cursor = db.cursor()
