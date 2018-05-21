@@ -66,6 +66,18 @@ if __name__ == '__main__':
     jira = JIRA(options, basic_auth=('Diego.Felix@DBSchenker.com', 'V0lkswagen00151637?'))
     print("Successfully connected to JIRA")
     projects = ["EFW"]
+
+    alter_sql = """ALTER TABLE EFW_STATUSES_2 
+                    ADD (Priority varchar(255),
+                    Land varchar(255),
+                    Ocean varchar(255),
+                    Air varchar(255));"""
+    try:
+        print(alter_sql)
+        execute_sql(alter_sql)
+        print('added new columns AIR,LAND,OCEAN')
+    except:
+        print("failed to add new columns")
     check_statuses(jira,projects[0])
 
     print(time.time() - start_time, 'seconds it took to run')

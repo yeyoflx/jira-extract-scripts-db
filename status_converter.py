@@ -202,14 +202,15 @@ def create_sql_jira(statuses,list_of_statuses):
              sql_string += start + end + total
              counter += 3
         sql_string = sql_string[:-1]+") VALUES("
-        print(counter)
+        #print(counter)
         for i in range(counter):
             sql_string += "'{}',"
         sql_string = sql_string[:-1]+");"
-        print(sql_string)
-        print(len(stored_values))
-        print(stored_values)
+        #print(sql_string)
+        #print(len(stored_values))
+        #print(stored_values)
         sql_string = sql_string.format(*stored_values)
+        print(sql_string)
         execute_sql(sql_string)
 
 if __name__ == '__main__':
@@ -222,6 +223,22 @@ if __name__ == '__main__':
     list_of_statuses = ["UserStoryDefinition","SolutionConceptCreation","Development","DevOps"]
     delete_table_sql = """DELETE FROM EFW_STATUSES_2;"""
     execute_sql(delete_table_sql)
+    create_table_sql = """ CREATE TABLE EFW_STATUSES_2 (
+                                                   Issue varchar(255),
+                                                   UserStoryDefinitionStartDate date,
+                                                   UserStoryDefinitionEndDate date,
+                                                   UserStoryDefinitionTotalDays int,
+                                                   SolutionConceptCreationStartDate date,
+                                                   SolutionConceptCreationEndDate date,
+                                                   SolutionConceptCreationTotalDays int,
+                                                   DevelopmentStartDate date,
+                                                   DevelopmentEndDate date,
+                                                   DevelopmentTotalDays int,
+                                                   DevOpsStartDate date,
+                                                   DevOpsEndDate date,
+                                                   DevOpsTotalDays int)
+                                                """
+    execute_sql(create_table_sql)
     statuses = check_statuses(jira, projects[0])
     new_statuses = create_new_statuses(statuses)
 
