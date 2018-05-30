@@ -135,9 +135,9 @@ def create_new_statuses(statuses):
             if start == None or end == None:
                 print(k2,start,end,0)
                 if k1 not in result.keys():
-                    result[k1] = [start,end,0]
+                    result[k1] = [start,end,None]
                 else:
-                    result[k1].extend([start,end,0])
+                    result[k1].extend([start,end,None])
             else:
                 difference = (end-start).days
                 print(k2,start,end,difference)
