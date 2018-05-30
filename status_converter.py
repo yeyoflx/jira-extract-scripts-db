@@ -213,9 +213,17 @@ def create_sql_jira(statuses,list_of_statuses):
         print(sql_string)
         execute_sql(sql_string)
 
+def change_zero_to_null():
+    statuses = ["UserStoryDefinitionTotalDays","SolutionConceptCreationTotalDays","DevelopmentTotalDays","DevOpsTotalDays"]
+    for i in statuses:
+        sql = """UPDATE EFW_STATUSES_2 SET """ + i + """ = null WHERE """ + i + """= 0;"""
+        print(sql)
+        execute_sql(sql)
+
+
 if __name__ == '__main__':
     start_time = time.time()
-    # Used to connect to the Schenker JIRA Database using personal credentials
+    #Used to connect to the Schenker JIRA Database using personal credentials
     options = {'server': 'https://schenkereservices.atlassian.net'}
     jira = JIRA(options, basic_auth=('Diego.Felix@DBSchenker.com', 'V0lkswagen00151637?'))
     print("Successfully connected to JIRA")
@@ -243,5 +251,5 @@ if __name__ == '__main__':
     new_statuses = create_new_statuses(statuses)
 
     create_sql_jira(new_statuses,list_of_statuses)
-
+    change_zero_to_null()
     print(time.time() - start_time, 'seconds it took to run')
