@@ -1,5 +1,4 @@
 import MySQLdb
-
 from jira.client import JIRA
 import datetime
 from datetime import date
@@ -74,7 +73,7 @@ def extract_from_jira(jira,project):
                                                               "Solution Concept Phase - Technical Review",
                                                               "Sign-Off Phase"],
                                 "Development": ["To Do", "In Progress","DEV Review","Review", "Done"],
-                                "DevOps": ["Issue Owner Review", "Ready to Deploy", "Functional Acceptance Test", "Production", "Delivered"]
+                                "DevOps": ["Ready to Deploy", "Functional Acceptance Test", "Production", "Delivered"]
                                 }
                 status = issue2.fields.status.name
 
