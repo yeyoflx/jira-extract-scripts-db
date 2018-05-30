@@ -53,7 +53,7 @@ def extract_from_jira(jira,project):
                 new_statuses = {"User Story Definition":["Recording","Verification Phase"],
                                 "Solution Concept Creation":["Solution Concept Open","Solution Concept in Creation","Solution Concept Int. Review","Solution Concept Tec. Review","Solution Concept Sign-off"],
                                 "Development":["Todo","In Progress","DEV Review""Review","Done"],
-                                "DevOps":["Issue Owner Review","Ready to Deploy","FAT","PROD"]
+                                "DevOps":["Ready to Deploy","FAT","PROD"]
                                 }
                 if str(issue2) not in dict_of_stories.keys():
                     dict_of_stories[str(issue)] = {"Summary":issue2.fields.summary,
@@ -73,7 +73,7 @@ def extract_from_jira(jira,project):
                                                               "Solution Concept Phase - Technical Review",
                                                               "Sign-Off Phase"],
                                 "Development": ["To Do", "In Progress","DEV Review","Review", "Done"],
-                                "DevOps": ["Ready to Deploy", "Functional Acceptance Test", "Production", "Delivered"]
+                                "DevOps": ["Ready to Deploy", "Functional Acceptance Test", "Production"]
                                 }
                 status = issue2.fields.status.name
 
