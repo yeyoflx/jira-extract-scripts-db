@@ -16,6 +16,7 @@ def check_statuses(jira,project):
             print(issue)
             sql_string = """ UPDATE EFW_STATUSES_2 SET """
             sql_string2 = """ UPDATE EFW_STATUSES_2 SET """
+            mode_sql_string = """ UPDATE EFW_STATUSES_2 SET Mode = '"""
             print(issue.fields.priority)
             sql_string += "Priority = '" + str(issue.fields.priority) + "' WHERE Issue = '" + str(issue) + "';"
             print(sql_string)
@@ -28,12 +29,20 @@ def check_statuses(jira,project):
                     sql_string2 += str(mode) + "= '"+str(mode)+"' WHERE " + "Issue = '" + str(issue) + "';"
                     print(sql_string2)
                     execute_sql(sql_string2)
+                    mode_sql_string += str(mode) + ","
                     sql_string2 = """ UPDATE EFW_STATUSES_2 SET """
+                mode_sql_string = mode_sql_string[:-1] + """' WHERE Issue = '""" + str(issue) + "';"
+                print(mode_sql_string)
+                execute_sql(mode_sql_string)
             else:
                 print(issue.fields.customfield_11016[0])
                 sql_string2 += str(issue.fields.customfield_11016[0]) + " = '"+ str(issue.fields.customfield_11016[0]) +"' WHERE " + "Issue = '"+str(issue)+"';"
                 print(sql_string2)
                 execute_sql(sql_string2)
+                mode_sql_string += str(issue.fields.customfield_11016[0]) + ","
+                mode_sql_string = mode_sql_string[:-1] + """' WHERE Issue = '""" + str(issue) + "';"
+                print(mode_sql_string)
+                execute_sql(mode_sql_string)
             print()
 
 def execute_sql(sql):
@@ -68,14 +77,12 @@ if __name__ == '__main__':
     projects = ["EFW"]
 
     alter_sql = """ALTER TABLE EFW_STATUSES_2 
-                    ADD (Priority varchar(255),
-                    Land varchar(255),
-                    Ocean varchar(255),
-                    Air varchar(255));"""
+                    ADD (
+                    Mode varchar(255));"""
     try:
         print(alter_sql)
         execute_sql(alter_sql)
-        print('added new columns AIR,LAND,OCEAN')
+        print('added new columns AIR,LAND,OCEAN,MODE')
     except:
         print("failed to add new columns")
     check_statuses(jira,projects[0])

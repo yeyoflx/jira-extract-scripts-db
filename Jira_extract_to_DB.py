@@ -72,7 +72,7 @@ def extract_from_jira(jira,project):
                                                               "Solution Concept Phase - Internal Review",
                                                               "Solution Concept Phase - Technical Review",
                                                               "Sign-Off Phase"],
-                                "Development": ["To Do", "In Progress","DEV Review","Review", "Done"],
+                                "Development": ["To Do", "In Progress","DEV Review","Review"],
                                 "DevOps": ["Ready to Deploy", "Functional Acceptance Test", "Production"]
                                 }
                 status = issue2.fields.status.name

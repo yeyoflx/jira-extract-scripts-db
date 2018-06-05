@@ -80,7 +80,7 @@ def create_new_statuses(statuses):
                                                       "Solution Concept Phase - Internal Review",
                                                       "Solution Concept Phase - Technical Review",
                                                       "Sign-Off Phase"],
-                        "Development": ["TO DO", "IN PROGRESS", "Review","DEV Review", "Done"],
+                        "Development": ["TO DO", "IN PROGRESS", "Review","DEV Review"] ,
                         "DevOps": ["Ready to Deploy","Functional Acceptance Test", "Production"]
                         }
     user_story_start, user_story_end = None, None
