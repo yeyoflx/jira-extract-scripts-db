@@ -68,12 +68,14 @@ def extract_from_jira(jira,project):
                                                    }
             else:
                 new_statuses = {"User Story Definition": ["Recording", "Verification Phase"],
-                                "Solution Concept Creation": ["Solution Concept Phase - Open", "Solution Concept Phase - In Creation",
+                                "Solution Concept Creation": ["Solution Concept Phase - In Creation",
                                                               "Solution Concept Phase - Internal Review",
                                                               "Solution Concept Phase - Technical Review",
                                                               "Sign-Off Phase"],
                                 "Development": ["To Do", "In Progress","DEV Review","Review"],
-                                "DevOps": ["Ready to Deploy", "Functional Acceptance Test", "Production"]
+                                "DevOps": ["Ready to Deploy", "Functional Acceptance Test", "Production"],
+                                "Waiting": ["Solution Concept Phase - Open","Product Backlog","Issue Owner Review"]
+
                                 }
                 status = issue2.fields.status.name
 
