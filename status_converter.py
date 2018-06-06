@@ -81,8 +81,7 @@ def create_new_statuses(statuses):
                                                       "Solution Concept Phase - Technical Review",
                                                       "Sign-Off Phase"],
                         "Development": ["TO DO", "IN PROGRESS", "Review","DEV Review"] ,
-                        "DevOps": ["Ready to Deploy","Functional Acceptance Test", "Production"],
-                        "Waiting": ["Solution Concept Phase - Open","Product Backlog","Issue Owner Review"]
+                        "DevOps": ["Ready to Deploy","Functional Acceptance Test", "Production"]
                         }
     user_story_start, user_story_end = None, None
     solution_concept_start, solution_concept_end = None, None
