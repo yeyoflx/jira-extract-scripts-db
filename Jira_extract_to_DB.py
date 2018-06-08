@@ -9,11 +9,16 @@ import time
 
 def extract_from_jira(jira,project):
     #Used to search for specfici JIRA issues based on issue type
-    issues1 = jira.search_issues('project = EFW AND issuetype in (Bug, Story) ORDER BY created DESC',startAt = 0  ,maxResults=20)
-    #issues2 = jira.search_issues('project = EFW AND issuetype in (Bug, Story) ORDER BY created DESC',startAt = 100,maxResults=500)
-    #issues3 = jira.search_issues('project = EFW AND issuetype in (Bug, Story) ORDER BY created DESC',startAt = 200,maxResults=500)
+    issues1 = jira.search_issues('project = EFW AND issuetype in (Bug, Story) ORDER BY created DESC',startAt = 0  ,maxResults=100)
+    issues2 = jira.search_issues('project = EFW AND issuetype in (Bug, Story) ORDER BY created DESC',startAt = 100,maxResults=100)
+    issues3 = jira.search_issues('project = EFW AND issuetype in (Bug, Story) ORDER BY created DESC',startAt = 200,maxResults=100)
+    issues4 = jira.search_issues('project = EFW AND issuetype in (Bug, Story) ORDER BY created DESC', startAt= 300,maxResults=100)
+    issues5 = jira.search_issues('project = EFW AND issuetype in (Bug, Story) ORDER BY created DESC', startAt= 400,maxResults=100)
+    issues6 = jira.search_issues('project = EFW AND issuetype in (Bug, Story) ORDER BY created DESC', startAt= 500,maxResults=100)
+    issues7 = jira.search_issues('project = EFW AND issuetype in (Bug, Story) ORDER BY created DESC', startAt= 600,maxResults=100)
+    issues8 = jira.search_issues('project = EFW AND issuetype in (Bug, Story) ORDER BY created DESC', startAt= 700,maxResults=100)
 
-    list_of_searches = [issues1]
+    list_of_searches = [issues1,issues2,issues3,issues4,issues5,issues6,issues7,issues8]
     dict_of_stories = {}
     # Accesses JIRA items changelog and locates changes in status as well as save the date of the changed status
     for list_of_issues in list_of_searches:
