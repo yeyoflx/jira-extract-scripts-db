@@ -9,9 +9,9 @@ import time
 
 def extract_from_jira(jira,project):
     #Used to search for specfici JIRA issues based on issue type
-    issues1 = jira.search_issues('project = '+project+' AND issuetype = Story ORDER BY created DESC',startAt = 0  ,maxResults=100)
-    issues2 = jira.search_issues('project = '+project+' AND issuetype = Story ORDER BY created DESC',startAt = 100,maxResults=500)
-    issues3 = jira.search_issues('project = '+project+' AND issuetype = Story ORDER BY created DESC',startAt = 200,maxResults=500)
+    issues1 = jira.search_issues('project = EFW AND issuetype in (Bug, Story) ORDER BY created DESC',startAt = 0  ,maxResults=100)
+    issues2 = jira.search_issues('project = EFW AND issuetype in (Bug, Story) ORDER BY created DESC',startAt = 100,maxResults=500)
+    issues3 = jira.search_issues('project = EFW AND issuetype in (Bug, Story) ORDER BY created DESC',startAt = 200,maxResults=500)
 
     list_of_searches = [issues1,issues2,issues3]
     dict_of_stories = {}
@@ -57,6 +57,7 @@ def extract_from_jira(jira,project):
                                 }
                 if str(issue2) not in dict_of_stories.keys():
                     dict_of_stories[str(issue)] = {"Summary":issue2.fields.summary,
+                                                   "Type":issue.fields.issuetype,
                                                    "Priority":issue2.fields.priority.name,
                                                    "Reporter":issue2.fields.reporter.displayName,
                                                    "Date Created":str(date_created),
@@ -75,7 +76,6 @@ def extract_from_jira(jira,project):
                                 "Development": ["To Do", "In Progress","DEV Review","Review"],
                                 "DevOps": ["Ready to Deploy", "Functional Acceptance Test", "Production"],
                                 "Waiting": ["Solution Concept Phase - Open","Product Backlog","Issue Owner Review"]
-
                                 }
                 status = issue2.fields.status.name
 
@@ -86,6 +86,7 @@ def extract_from_jira(jira,project):
                         pass
                 if str(issue2) not in dict_of_stories.keys():
                     dict_of_stories[str(issue)] = {"Summary":issue2.fields.summary,
+                                                   "Type":issue2.fields.issuetype,
                                                    "Priority":issue2.fields.priority.name,
                                                    "Reporter":issue2.fields.reporter.displayName,
                                                    "Date Created":str(date_created),
@@ -136,6 +137,7 @@ if __name__ == '__main__':
         execute_sql(delete_table_sql)
         create_table_sql = """ CREATE TABLE """ + i + """ (
                                Issue varchar(255),
+                               Type varchar(255),
                                Summary varchar(255),
                                Priority varchar(255),
                                Reporter varchar(255),
@@ -150,8 +152,8 @@ if __name__ == '__main__':
         stored_dictionary = extract_from_jira(jira,i)
         for k,v in stored_dictionary.items():
             stored_values = []
-            sql = ''' INSERT INTO '''+i+''' (Issue, Summary, Priority, Reporter,DateCreated,StoryAge, Assignee, CurrentStatus, StatusDate, StatusAge)
-                VALUES ('{}','{}','{}','{}','{}','{}','{}','{}','{}','{}');
+            sql = ''' INSERT INTO '''+i+''' (Issue,Type, Summary, Priority, Reporter,DateCreated,StoryAge, Assignee, CurrentStatus, StatusDate, StatusAge)
+                VALUES ('{}','{},'{}','{}','{}','{}','{}','{}','{}','{}','{}');
                     '''
             stored_values.append(str(k))
             for k1,v1 in v.items():
